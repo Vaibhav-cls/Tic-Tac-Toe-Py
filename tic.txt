@@ -1,0 +1,118 @@
+import pygame
+import sys
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Constants
+WIDTH, HEIGHT = 300, 300
+LINE_WIDTH = 15
+BOARD_SIZE = 3
+CELL_SIZE = WIDTH // BOARD_SIZE
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# Initialize the game window
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Tic-Tac-Toe")
+clock = pygame.time.Clock()
+
+# Function to draw the Tic-Tac-Toe board
+def draw_board():
+    for i in range(1, BOARD_SIZE):
+        pygame.draw.line(screen, WHITE, (i * CELL_SIZE, 0), (i * CELL_SIZE, HEIGHT), LINE_WIDTH)
+        pygame.draw.line(screen, WHITE, (0, i * CELL_SIZE), (WIDTH, i * CELL_SIZE), LINE_WIDTH)
+
+# Function to draw X at a given position
+def draw_x(row, col):
+    pygame.draw.line(screen, WHITE, (col * CELL_SIZE, row * CELL_SIZE), ((col + 1) * CELL_SIZE, (row + 1) * CELL_SIZE), LINE_WIDTH)
+    pygame.draw.line(screen, WHITE, ((col + 1) * CELL_SIZE, row * CELL_SIZE), (col * CELL_SIZE, (row + 1) * CELL_SIZE), LINE_WIDTH)
+
+# Function to draw O at a given position
+def draw_o(row, col):
+    pygame.draw.circle(screen, WHITE, (col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 2 - LINE_WIDTH // 2, LINE_WIDTH)
+
+# Function to check for a win
+def check_winner(board, player):
+    for i in range(BOARD_SIZE):
+        if all(board[i][j] == player for j in range(BOARD_SIZE)) or all(board[j][i] == player for j in range(BOARD_SIZE)):
+            return True
+
+    if all(board[i][i] == player for i in range(BOARD_SIZE)) or all(board[i][BOARD_SIZE - 1 - i] == player for i in range(BOARD_SIZE)):
+        return True
+
+    return False
+
+# Function to check for a draw
+def check_draw(board):
+    return all(board[i][j] != ' ' for i in range(BOARD_SIZE) for j in range(BOARD_SIZE))
+
+# Function to make a move for the computer
+def make_computer_move(board):
+    empty_cells = [(i, j) for i in range(BOARD_SIZE) for j in range(BOARD_SIZE) if board[i][j] == ' ']
+    return random.choice(empty_cells) if empty_cells else None
+
+# Main game loop
+def main():
+    board = [[' ' for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+    current_player = 'X'
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and current_player == 'X':
+                col = event.pos[0] // CELL_SIZE
+                row = event.pos[1] // CELL_SIZE
+
+                if board[row][col] == ' ':
+                    board[row][col] = 'X'
+                    if check_winner(board, 'X'):
+                        print("Player X wins!")
+                        pygame.quit()
+                        sys.exit()
+                    elif check_draw(board):
+                        print("It's a draw!")
+                        pygame.quit()
+                        sys.exit()
+
+                    current_player = 'O'
+
+        screen.fill(BLACK)
+        draw_board()
+
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
+                if board[i][j] == 'X':
+                    draw_x(i, j)
+                elif board[i][j] == 'O':
+                    draw_o(i, j)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+        # Computer's move
+        if current_player == 'O':
+            computer_move = make_computer_move(board)
+            if computer_move:
+                row, col = computer_move
+                board[row][col] = 'O'
+                if check_winner(board, 'O'):
+                    print("Player O wins!")
+                    pygame.quit()
+                    sys.exit()
+                elif check_draw(board):
+                    print("It's a draw!")
+                    pygame.quit()
+                    sys.exit()
+
+                current_player = 'X'
+
+if __name__ == "__main__":
+    main()
